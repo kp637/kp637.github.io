@@ -23,6 +23,18 @@
   .badge { display: inline-block; background: #c0272d; color: #fff; font-weight: 900; font-size: 18px; padding: 2px 14px; border-radius: 999px; letter-spacing: 1px; }
   .was { text-decoration: line-through; color: #888; }
   .foot { text-align: center; color: #555; font-size: 14px; line-height: 1.8; margin-top: 22px; }
+  .msgbox { background: #fff; border-radius: 12px; padding: 22px 18px; box-shadow: 0 2px 10px rgba(0,0,0,.08); margin-top: 28px; }
+  .msgbox h2 { text-align: center; margin: 0 0 8px; font-size: 25px; font-weight: 900; color: #1e8c1e; }
+  .msgbox .privacy { text-align: center; color: #555; font-size: 14px; line-height: 1.8; margin-bottom: 8px; }
+  .msgbox label { display: block; font-weight: 800; font-size: 17px; margin: 14px 0 6px; }
+  .msgbox .hint { color: #777; font-size: 13px; margin-top: 4px; }
+  .msgbox input[type="text"], .msgbox textarea { width: 100%; box-sizing: border-box; font-size: 16px; padding: 11px; border: 1px solid #bbb; border-radius: 8px; font-family: inherit; background: #fff; }
+  .msgbox textarea { min-height: 110px; resize: vertical; }
+  .msgbox button { width: 100%; margin-top: 18px; background: #1e8c1e; color: #fff; border: 0; border-radius: 8px; padding: 14px; font-size: 20px; font-weight: 900; cursor: pointer; }
+  .msgbox button:disabled { opacity: .55; cursor: default; }
+  .msgstatus { display: none; text-align: center; font-size: 16px; font-weight: 700; margin-top: 14px; line-height: 1.8; }
+  .msgstatus.ok { color: #1e8c1e; }
+  .msgstatus.err { color: #c0272d; }
 </style>
 </head>
 <body>
@@ -155,6 +167,70 @@
     <div class="itemline">特價 SALE 任選兩袋 2 BAGS FOR <span class="price">$2.99</span></div>
   </div>
   </div>
+  <div class="msgbox">
+    <h2>留言給我們 Leave Us a Message</h2>
+    <div class="privacy">留言只會發送到門店郵箱，不會公開顯示。<br>Your message goes to our store email only and will not be posted publicly.</div>
+    <form id="msgform">
+      <label for="mf-name">姓名 Name（可選 Optional）</label>
+      <input id="mf-name" name="姓名 Name" type="text" autocomplete="name">
+      <label for="mf-contact">電話或電郵 Phone or Email（可選 Optional）</label>
+      <input id="mf-contact" name="聯絡方式 Contact" type="text" autocomplete="email">
+      <div class="hint">填了聯絡方式，我們才方便回覆您。Leave a phone number or email so we can reply to you.</div>
+      <label for="mf-msg">留言 Message（必填 Required）</label>
+      <textarea id="mf-msg" name="留言 Message" required></textarea>
+      <input type="text" name="_honey" style="display:none" tabindex="-1" autocomplete="off">
+      <button type="submit" id="mf-btn">發送留言 Send</button>
+      <div class="msgstatus" id="mf-status"></div>
+    </form>
+  </div>
+  <script>
+  (function () {
+    var form = document.getElementById('msgform');
+    var btn = document.getElementById('mf-btn');
+    var st = document.getElementById('mf-status');
+    function show(kind, text) {
+      st.className = 'msgstatus' + (kind ? ' ' + kind : '');
+      st.style.display = 'block';
+      st.textContent = text;
+    }
+    form.addEventListener('submit', function (e) {
+      e.preventDefault();
+      var msg = document.getElementById('mf-msg').value.trim();
+      if (!msg) {
+        show('err', '請先填寫留言內容。 Please write your message first.');
+        return;
+      }
+      btn.disabled = true;
+      btn.textContent = '發送中… Sending…';
+      show('', '正在發送，請稍候… Sending, please wait…');
+      var data = {
+        '姓名 Name': document.getElementById('mf-name').value.trim(),
+        '聯絡方式 Contact': document.getElementById('mf-contact').value.trim(),
+        '留言 Message': msg,
+        '_subject': '特價頁顧客留言 Customer Message',
+        '_template': 'table',
+        '_captcha': 'false'
+      };
+      fetch('https://formsubmit.co/ajax/allston1159@gmail.com', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json', 'Accept': 'application/json' },
+        body: JSON.stringify(data)
+      }).then(function (r) { return r.json(); }).then(function (j) {
+        if (j && (j.success === true || j.success === 'true')) {
+          show('ok', '留言已送出，謝謝您！我們會盡快回覆。 Thank you! Your message has been sent and we will reply soon.');
+          form.reset();
+        } else {
+          throw new Error('not success');
+        }
+      }).catch(function () {
+        show('err', '發送失敗，請稍後再試，或致電門店 (617) 787-2288。 Sending failed — please try again later, or call us at (617) 787-2288.');
+      }).then(function () {
+        btn.disabled = false;
+        btn.textContent = '發送留言 Send';
+      });
+    });
+  })();
+  </script>
   <div class="foot">
     售完即止 While supplies last<br>
     價格以店內標示為準 Prices as marked in store
